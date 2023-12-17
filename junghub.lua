@@ -4493,7 +4493,7 @@ task.spawn(function()
 	pcall(function()
 
 		if queue_on_teleport then
-			local JungHubSCRIPT = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/junggamyeon/MyScript/main/ultrahub.lua?token=GHSAT0AAAAAACLNPLBJFD2YXH2S4O6ISJYIZL7ATZA"))()'
+			local JungHubSCRIPT = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/junggamyeon/MyScript/main/junghub.lua?token=GHSAT0AAAAAACLNPLBIHJ32CPLDDWMOAUQMZL7AY2Q"))()'
 			queue_on_teleport(JungHubSCRIPT)
 		end
 
