@@ -24,10 +24,6 @@ local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 
 
-local Remotes = RS:WaitForChild('endpoints')
-local Event = game:GetService("ReplicatedStorage").endpoints["client_to_server"]
-
-
 
 -- SAVED STATS
 
