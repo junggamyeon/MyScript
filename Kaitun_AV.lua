@@ -1,8 +1,23 @@
 
 
-
-
-local json = game:GetService("HttpService")
+local unitIdMap = {
+    Itochi = 10,
+    Agony = 15,
+    Goi = 12,
+    ["Grim Wow"] = 14,
+    ["Cha-In"] = 22,
+    ["Song Jinwu"] = 21,
+    Aligator = 32,
+    Sanjo = 43,
+    Roku = 41,
+    Vogita = 45,
+    Noruto = 40,
+    Luffo = 39,
+    Jon = 38,
+    Kinnua = 31,
+    Pickleo = 34,
+    Kinaru = 13
+}
 
 local function waitForSeconds(seconds)
     local endTime = tick() + seconds
@@ -17,143 +32,176 @@ end
 
 local function savePositionsToFile(positions)
     local jsonData = json:JSONEncode(positions)
-    writefile(config.PositionFile, jsonData)
+    writefile(getgenv().SettingFarm.PositionFile, jsonData)
 end
 
+
 local function loadPositionsFromFile()
-    if isfile(config.PositionFile) then
-        local jsonData = readfile(config.PositionFile)
+    if isfile(getgenv().SettingFarm.PositionFile) then
+        local jsonData = readfile(getgenv().SettingFarm.PositionFile)
         return json:JSONDecode(jsonData)
     else
         return {}
     end
 end
 
+
 local function resetPositionFile()
-    if isfile(config.PositionFile) then
-        delfile(config.PositionFile)
+    if isfile(getgenv().SettingFarm.PositionFile) then
+        delfile(getgenv().SettingFarm.PositionFile)
     end
-    writefile(config.PositionFile, json:JSONEncode({}))
+    writefile(getgenv().SettingFarm.PositionFile, json:JSONEncode({}))
 end
 
-local function getNextPosition(startPos, stepSize, placedPositions)
-    local positions = {}
-    local xStart, zStart = startPos.X, startPos.Z
 
-    for x = -4, 4, stepSize do
-        for z = -4, 4, stepSize do
-            local newPos = Vector3.new(xStart + x, startPos.Y, zStart + z)
-            local positionOccupied = false
-            
-            for _, placedPos in pairs(placedPositions) do
-                if (placedPos - newPos).magnitude < (stepSize / 2) then
-                    positionOccupied = true
-                    break
-                end
-            end
-            
-            if not positionOccupied then
-                table.insert(positions, newPos)
-            end
-        end
+local function getNextPosition(startPos, currentPos, stepSize, endPos)
+    local nextZ = currentPos.Z - stepSize
+    local nextX = currentPos.X
+
+    if nextZ < endPos.Z then
+        nextZ = startPos.Z -- reset Z về giá trị ban đầu
+        nextX = currentPos.X - stepSize -- chuyển sang cột tiếp theo, giảm X
     end
 
-    if #positions > 0 then
-        return positions[math.random(#positions)]
-    else
+    -- Nếu vượt quá giới hạn X, trả về nil để dừng quá trình đặt unit
+    if nextX < endPos.X then
         return nil
     end
+
+    return Vector3.new(nextX, startPos.Y, nextZ)
+end
+
+local function isPositionOccupied(newPos, stepSize)
+    for _, unit in pairs(workspace.Units:GetChildren()) do
+        local unitPos = unit.PrimaryPart.Position
+        if math.abs(unitPos.X - newPos.X) < stepSize and math.abs(unitPos.Z - newPos.Z) < stepSize then
+            return true
+        end
+    end
+    return false
 end
 
 local function FarmGem()
-
-    local argsSkip = { [1] = "Skip" }
-    game:GetService("ReplicatedStorage").Networking.SkipWaveEvent:FireServer(unpack(argsSkip))
-    waitForSeconds(2)
-
-    local startPos = Vector3.new(139.03076171875, 8.633744239807129, 121.34211730957031)
-    local stepSize = 2
-    local placedPositions = loadPositionsFromFile()
-
     local player = game.Players.LocalPlayer
     local unitFolder = player:WaitForChild("PlayerGui"):WaitForChild("Hotbar"):WaitForChild("Main"):WaitForChild("Units")
     
-    local yenValueLabel = player:WaitForChild("PlayerGui"):WaitForChild("Hotbar"):WaitForChild("Main"):WaitForChild("Yen")
-    local yenValue = extractNumber(yenValueLabel.Text)
+    local argsSkip = { [1] = "Skip" }
+    game:GetService("ReplicatedStorage").Networking.SkipWaveEvent:FireServer(unpack(argsSkip))
+    wait(2)
+    
+    
+    local startPos = Vector3.new(140.06515502929688, 8.752506256103516, 123.34211730957031)
+    local endPos = Vector3.new(129.9888153076172, 8.752506256103516, 117.63985443115234)
+    local stepSize = 2
+    local currentPos = startPos
+    local pendingPositions = {}
 
     while true do
+        local yenValueLabel = player:WaitForChild("PlayerGui"):WaitForChild("Hotbar"):WaitForChild("Main"):WaitForChild("Yen")
+        local yenValue = extractNumber(yenValueLabel.Text)
         local anyPlaced = false
+        local enoughMoney = false
 
         for i = 1, 6 do
             local unitSlot = unitFolder:FindFirstChild(tostring(i))
             if unitSlot and unitSlot:FindFirstChild("UnitTemplate") then
+                local unitName = unitSlot.UnitTemplate.Holder.Main.UnitName.Text
+                local unitId = unitIdMap[unitName]
                 local placementText = unitSlot.UnitTemplate.Holder.Main.MaxPlacement.Text
                 local maxPlacement = extractNumber(string.match(placementText, "/(%d+)"))
                 local currentPlacement = extractNumber(string.match(placementText, "(%d+)/"))
 
                 if currentPlacement < maxPlacement then
-                    local unitName = unitSlot.UnitTemplate.Holder.Main.UnitName.Text
                     local price = extractNumber(unitSlot.UnitTemplate.Holder.Main.Price.Text)
 
-                    if yenValue >= price then
-                        local nextPos = getNextPosition(startPos, stepSize, placedPositions)
-                        if nextPos then
+                    if #pendingPositions > 0 then
+                        local savedPos = table.remove(pendingPositions, 1)
+
+                        if yenValue >= price then
                             local argsRender = {
                                 [1] = "Render",
                                 [2] = {
                                     [1] = unitName,
-                                    [2] = 44,
-                                    [3] = nextPos,
+                                    [2] = unitId,
+                                    [3] = savedPos,
                                     [4] = 0
                                 }
                             }
                             game:GetService("ReplicatedStorage").Networking.UnitEvent:FireServer(unpack(argsRender))
-                            table.insert(placedPositions, nextPos)
-                            savePositionsToFile(placedPositions)
-                            waitForSeconds(2)
+                            wait(2)
                             anyPlaced = true
+                            yenValue = yenValue - price
+                        else
+                            table.insert(pendingPositions, savedPos)
+                        end
+                    end
+
+                    if yenValue >= price then
+                        while currentPos do
+                            if not isPositionOccupied(currentPos, stepSize) then
+                                local argsRender = {
+                                    [1] = "Render",
+                                    [2] = {
+                                        [1] = unitName,
+                                        [2] = unitId,
+                                        [3] = currentPos,
+                                        [4] = 0
+                                    }
+                                }
+                                game:GetService("ReplicatedStorage").Networking.UnitEvent:FireServer(unpack(argsRender))
+                                wait(2)
+                                anyPlaced = true
+                                yenValue = yenValue - price
+                                currentPos = getNextPosition(startPos, currentPos, stepSize, endPos)
+                                enoughMoney = true
+                                break
+                            else
+                                currentPos = getNextPosition(startPos, currentPos, stepSize, endPos)
+                            end
                         end
                     else
-                        print("Không đủ Yen để đặt unit.")
+                        if currentPos then
+                            table.insert(pendingPositions, currentPos)
+                            currentPos = getNextPosition(startPos, currentPos, stepSize, endPos)
+                        end
                     end
                 end
             end
         end
 
-        if not anyPlaced then
+        if not enoughMoney then
+            print("Không đủ yen để đặt unit, tạm dừng...")
+            wait(5)
+        end
+
+        if not anyPlaced and #pendingPositions == 0 and not currentPos then
+            print("Hoàn thành việc đặt tất cả các units.")
             break
         end
-
-        yenValueLabel = player:WaitForChild("PlayerGui"):WaitForChild("Hotbar"):WaitForChild("Main"):WaitForChild("Yen")
-        yenValue = extractNumber(yenValueLabel.Text)
     end
 
-    local allUnitsMaxed = true
-    for i = 1, 6 do
-        local unitSlot = unitFolder:FindFirstChild(tostring(i))
-        if unitSlot and unitSlot:FindFirstChild("UnitTemplate") then
-            local placementText = unitSlot.UnitTemplate.Holder.Main.MaxPlacement.Text
-            local maxPlacement = extractNumber(string.match(placementText, "/(%d+)"))
-            local currentPlacement = extractNumber(string.match(placementText, "(%d+)/"))
-            if currentPlacement < maxPlacement then
-                allUnitsMaxed = false
-                break
-            end
-        end
-    end
+    -- Tự động nâng cấp tất cả các units sau khi đặt xong
+    while true do
+        local anyUpgraded = false
 
-    if allUnitsMaxed then
         for _, unit in pairs(workspace.Units:GetChildren()) do
             local unitId = unit.Name
             local argsUpgrade = {
                 [1] = "Upgrade",
                 [2] = unitId
             }
-            game:GetService("ReplicatedStorage").Networking.UnitEvent:FireServer(unpack(argsUpgrade))
-            waitForSeconds(2)
+            local upgradeResponse = game:GetService("ReplicatedStorage").Networking.UnitEvent:FireServer(unpack(argsUpgrade))
+            wait(2)
+
+            -- Kiểm tra phản hồi xem có nâng cấp thành công không
+            if upgradeResponse and upgradeResponse.Success then
+                anyUpgraded = true
+            end
         end
     end
 end
+
+
 
 resetPositionFile()
 
@@ -162,12 +210,13 @@ local function sendDialogueEvent(args)
 end
 
 local function enterCodes(codes)
-    for _, code in pairs(codes) do
+    for _, code in pairs(getgenv().SettingFarm.Codes) do
         local codeArgs = { [1] = code }
         game:GetService("ReplicatedStorage").Networking.CodesEvent:FireServer(unpack(codeArgs))
         waitForSeconds(2)
     end
 end
+
 
 local function selectUnit(unitName)
     local selectArgs = { [1] = "Select", [2] = unitName }
@@ -236,6 +285,7 @@ local function equipUnits(targetUnits, backupUnits)
     return #unitsToEquip == #targetUnits
 end
 
+
 local function performLobbyActions()
     local enterArgs = {
         [1] = "Enter",
@@ -302,7 +352,8 @@ local function main()
     selectUnit("Luffo")
     waitForSeconds(1)
 
-    enterCodes(config.Codes)
+    enterCodes(getgenv().SettingFarm.Codes)
+
 
     game:GetService("ReplicatedStorage").Networking.Settings.SettingsEvent:FireServer("Toggle", "SkipSummonAnimation")
     game:GetService("ReplicatedStorage").Networking.Settings.SettingsEvent:FireServer("Toggle", "AutoSkipWaves")
@@ -313,9 +364,8 @@ local function main()
     end
 
     claimTutorial()
-
-    if config.Equipment.Enable then
-        local success = equipUnits(config.Equipment.Units, config.Equipment.BackupUnits)
+    if getgenv().SettingFarm.Equipment.Enable then
+        local success = equipUnits(getgenv().SettingFarm.Equipment.Units, getgenv().SettingFarm.Equipment.BackupUnits)
         if success then
             performLobbyActions()
         else
