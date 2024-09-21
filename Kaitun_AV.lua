@@ -45,10 +45,6 @@ local function loadPositionsFromFile()
     end
 end
 
-
-
-
-
 local function getNextPosition(startPos, currentPos, stepSize, endPos)
     local nextZ = currentPos.Z - stepSize
     local nextX = currentPos.X
@@ -195,10 +191,6 @@ local function FarmGem()
         end
     end
 end
-
-
-
-
 
 local function sendDialogueEvent(args)
     game:GetService("ReplicatedStorage").Networking.State.DialogueEvent:FireServer(unpack(args))
