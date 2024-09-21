@@ -46,12 +46,7 @@ local function loadPositionsFromFile()
 end
 
 
-local function resetPositionFile()
-    if isfile(getgenv().SettingFarm.PositionFile) then
-        delfile(getgenv().SettingFarm.PositionFile)
-    end
-    writefile(getgenv().SettingFarm.PositionFile, json:JSONEncode({}))
-end
+
 
 
 local function getNextPosition(startPos, currentPos, stepSize, endPos)
@@ -203,7 +198,7 @@ end
 
 
 
-resetPositionFile()
+
 
 local function sendDialogueEvent(args)
     game:GetService("ReplicatedStorage").Networking.State.DialogueEvent:FireServer(unpack(args))
