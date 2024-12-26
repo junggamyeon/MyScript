@@ -6,11 +6,11 @@ local playergui = player:WaitForChild("PlayerGui")
 local roguelikeselect = playergui:WaitForChild("RoguelikeSelect")
 roguelikeselect.Enabled = true
 roguelikeselect.Enabled = false
-local wavenum = playergui:WaitForChild("Waves"):WaitForChild("HealthBar"):WaitForChild("WaveNumber")
+local waveValue = game:GetService("Workspace"):WaitForChild("_wave_num")
 
 local wavenumber
-wavenum:GetPropertyChangedSignal("Text"):Connect(function()
-    wavenumber = tonumber(wavenum.Text)
+waveValue:GetPropertyChangedSignal("Value"):Connect(function()
+    wavenumber = waveValue.Value
 end)
 
 repeat task.wait() until wavenumber and wavenumber >= 1
