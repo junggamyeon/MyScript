@@ -53,6 +53,7 @@ playergui:FindFirstChild("RoguelikeSelect"):GetPropertyChangedSignal("Enabled"):
         end
     end
 
+    -- Ưu tiên thẻ trong PriorityCardsFocusWave nếu wave <= FocusWave
     local priorityList = wavenumber <= getgenv().FocusWave and getgenv().PriorityCardsFocusWave or getgenv().Cards
 
     for i = 1, #priorityList, 1 do
@@ -71,3 +72,4 @@ end)
 
 playergui.RoguelikeSelect.Enabled = true
 playergui.RoguelikeSelect.Enabled = false
+
