@@ -471,7 +471,7 @@ PGUI = game.Players.LocalPlayer:WaitForChild('PlayerGui')
 
 -- MAKING GUI
 ScreenGui = Instance.new('ScreenGui', game.CoreGui)
-ScreenGui.Name = 'Ultra Hub'
+ScreenGui.Name = 'Bocchi World'
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 ScreenGui.Enabled = true
@@ -485,19 +485,19 @@ MainFrame.Position = UDim2.new(0.614, 0, 0.284, 0)
 MainFrame.Name = 'MainFrame'
 
 MainContent = Instance.new('Frame', MainFrame)
-MainContent.BackgroundColor3 = Color3.fromRGB(73, 73, 99)
+MainContent.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 MainContent.Size = UDim2.new(1, 0, 1, 0)
 MakeUICorner(0.01, MainContent)
 
 lowerTop = Instance.new('Frame', MainContent)
 lowerTop.AnchorPoint = Vector2.new(0.5, 1)
-lowerTop.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+lowerTop.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 lowerTop.Size = UDim2.new(1, 0, 0.019, 0)
 lowerTop.Position = UDim2.new(0.5, 0, 0.038, 0)	
 lowerTop.BorderSizePixel = 0
 
 ShadowMainContent = Instance.new('Frame', MainContent)
-ShadowMainContent.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+ShadowMainContent.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ShadowMainContent.AnchorPoint = Vector2.new(0.5, 0.5)
 ShadowMainContent.Size = UDim2.new(1.02, 0, 1.02, 0)
 ShadowMainContent.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -564,7 +564,7 @@ task.spawn(function()
 end)
 
 Top = Instance.new('Frame', MainFrame)
-Top.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+Top.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Top.AnchorPoint = Vector2.new(1, 0.5)
 Top.Size = UDim2.new(1, 0, 0.048, 0)
 Top.Position = UDim2.new(1, 0, 0.014, 0)
@@ -593,7 +593,7 @@ HubTitle.ZIndex = 10001
 HubTitle.Font = Enum.Font.GothamBlack
 HubTitle.TextColor3 = Color3.fromRGB(255,255,255)
 HubTitle.TextScaled = true
-HubTitle.Text = 'ULTRA HUB - BETA'
+HubTitle.Text = 'BOCCHI WORLD - V0'
 
 
 TopBarSizes = {
@@ -619,6 +619,8 @@ CloseButton.MouseButton1Click:Connect(function()
 	Top.Size = TopBarSizes[MainContent.Visible]
 
 end)
+
+
 
 
 local function MakeDraggable (dragGui, dragwith)
@@ -674,7 +676,7 @@ MakeDraggable(Top, MainFrame)
 
 Pages = Instance.new('ScrollingFrame', MainContent)
 Pages.BackgroundColor3 = Color3.fromRGB(94, 94, 127)
-Pages.Size = UDim2.new(1, 0, 0.047, 0)
+Pages.Size = UDim2.new(1, 0, 0.030, 0)
 Pages.Position = UDim2.new(0, 0, 0.038, 0)
 Pages.AutomaticCanvasSize = 'Y'
 Pages.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -691,7 +693,7 @@ ListPages.SortOrder = Enum.SortOrder.LayoutOrder
 
 ScrollingContent = Instance.new('ScrollingFrame', MainContent)
 ScrollingContent.BackgroundTransparency = 1
-ScrollingContent.Size = UDim2.new(1, 0, 0.916, 0)
+ScrollingContent.Size = UDim2.new(1, 0, 0.816, 0)
 ScrollingContent.Position = UDim2.new(0, 0, 0.084, 0)
 ScrollingContent.AutomaticCanvasSize = 'Y'
 ScrollingContent.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -800,7 +802,7 @@ local function MakeNewSubPage (pageName, side, scaleY, cornerScale, UIPaddingTop
 	local page = ScrollingContent[pageName][side]
 
 	local newSubPage = Instance.new('Frame', page)
-	newSubPage.BackgroundColor3 = Color3.fromRGB(48, 48, 69)
+	newSubPage.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
 	newSubPage.BorderSizePixel = 0
 	newSubPage.Size = UDim2.new(0.95, 0, scaleY, 0)
 	MakeUICorner(cornerScale, newSubPage)
@@ -843,7 +845,7 @@ local function MakeCheckbox (subPage, checkBoxTXT, scaleY)
 
 	local newCheckBox = Instance.new('Frame', newCheckBoxFrame)
 	newCheckBox.AnchorPoint = Vector2.new(0, 0.5)
-	newCheckBox.BackgroundColor3 = Color3.fromRGB(37, 37, 54)
+	newCheckBox.BackgroundColor3 = Color3.fromRGB(255, 20, 147)
 	newCheckBox.Size = UDim2.new(0.049, 0, 0.73, 0)
 	newCheckBox.Position = UDim2.new(0, 0, 0.5, 0)
 	newCheckBox.BorderSizePixel = 0
@@ -886,7 +888,7 @@ local function MakeLargeButton (subPage, buttonTXT, scaleY)
 
 	local newLargeButton = Instance.new('TextButton', newLargeButtonFrame)
 	newLargeButton.AnchorPoint = Vector2.new(0.5, 0.5)
-	newLargeButton.BackgroundColor3 = Color3.fromRGB(75, 75, 108)
+	newLargeButton.BackgroundColor3 = Color3.fromRGB(255, 250, 240)
 	newLargeButton.BorderSizePixel = 0
 	newLargeButton.Size = UDim2.new(1, 0, 0.67, 0)
 	newLargeButton.Position = UDim2.new(0.5, 0, 0.5, 0)
