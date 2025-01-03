@@ -21,7 +21,7 @@ local function InGame()
     end
 end
 
-if loadstring(game:HttpGet("https://raw.githubusercontent.com/KamaadiN/DataStore/main/WL.lua"))() and (InLobby() or InGame()) then
+if loadstring(game:HttpGet("https://raw.githubusercontent.com/junggamyeon/MyScript/refs/heads/main/WL.lua.txt"))() and (InLobby() or InGame()) then
 
     function DataStore()
         local DS = {}
