@@ -3,23 +3,24 @@ getgenv().EquipMacroUnit = true
 getgenv().Config = {
     ["World Joiner"] = {
         ["Matchmaking"] = false,
-        ["Act"] = "Act 1",
+        ["Act"] = "Infinite",
         ["Enable"] = true,
         ["Hard Mode"] = false,
         ["World"] = "Planet Greenie"
     },
     ["Game Finished"] = {
-        ["Auto Replay"] = true,
-        ["Auto Next"] = true
+        ["Auto Return Lobby"] = true,
+        ["Auto Replay"] = true
+        
     },
     ["Joiner Cooldown"] = 0,
     ["Auto Play"] = {
         ["Auto Upgrade"] = true,
         ["Enable"] = true,
-        ["Upgrade Method"] = "Randomize",
+        ["Upgrade Method"] = "Lowest Level (Spread Upgrade)",
         ["Focus on Farm"] = true,
         ["Middle Position"] = {
-            ["Planet Greenie"] = "-2930.51611328125, 91.80620574951172, -734.8823852539062"
+            ["Planet Greenie"] = "-2925.492431640625, 91.80620574951172, -742.59814453125"
         }
     },
     ["Macros"] = {
@@ -30,7 +31,7 @@ getgenv().Config = {
     },
     ["Failsafe"] = {
         ["Auto Rejoin"] = true,
-        ["Teleport Lobby if Player"] = true
+        ["Teleport Lobby if Player"] = false
     },
     ["Secure"] = {
         ["Walk Around"] = true
