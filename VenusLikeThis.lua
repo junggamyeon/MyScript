@@ -1,3 +1,5 @@
+
+
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
@@ -49,23 +51,56 @@ local function getModelPosition(model)
     return nil
 end
 
-local function getNearestEnemyTo(part)
+local function getEnemyModels()
     local enemyFolder = Workspace:FindFirstChild("EnemyFolder")
-    if not enemyFolder then return nil end
-    local closest = nil
-    local shortest = math.huge
+    if not enemyFolder then return {} end
+
+    local result = {}
     for _, model in ipairs(enemyFolder:GetChildren()) do
         if model:IsA("Model") then
-            local pos = getModelPosition(model)
-            if pos then
-                local dist = (pos - part.Position).Magnitude
-                if dist < shortest then
-                    shortest = dist
-                    closest = model
-                end
+            table.insert(result, model)
+        end
+    end
+    return result
+end
+
+local function getFilteredEnemies()
+    local all = getEnemyModels()
+    local filtered = {}
+
+    local alligatorOnly = true
+    for _, m in ipairs(all) do
+        if m.Name ~= "Alligator" then
+            alligatorOnly = false
+            break
+        end
+    end
+
+    for _, model in ipairs(all) do
+        if alligatorOnly or model.Name ~= "Alligator" then
+            table.insert(filtered, model)
+        end
+    end
+
+    return filtered
+end
+
+local function getNearestEnemyTo(part)
+    local closest = nil
+    local shortest = math.huge
+    local enemies = getFilteredEnemies()
+
+    for _, model in ipairs(enemies) do
+        local pos = getModelPosition(model)
+        if pos then
+            local dist = (pos - part.Position).Magnitude
+            if dist < shortest then
+                shortest = dist
+                closest = model
             end
         end
     end
+
     return closest
 end
 
