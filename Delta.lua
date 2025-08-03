@@ -5730,9 +5730,6 @@ LOADER_MODULES[LOADER["c"]] = {
 getgenv().rLib = require(LOADER["c"])
 
 -- Create a coroutine to run the loading animation asynchronously
-coroutine.wrap(function()
-    getgenv().rLib:Start()
-end)()
 
 
 function whitelist()
