@@ -9,17 +9,17 @@ local Starlight = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/starl
 
 local NebulaIcons = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/nebula-icon-library-loader"))()
 local Window = Starlight:CreateWindow({
-    Name  = "MyScript",
-    Subtitle = "Starlight UI Demo",
+    Name  = "Shouko.Dev",
+    Subtitle = "Garden Tower Defense",
     Icon  = 0,
     LoadingSettings = {
-        Title = "My Script Hub",
+        Title = "Shouko.Dev",
         Subtitle = "Initializing..."
     },
     ConfigurationSettings = {
         FolderName = "MyScript"
     },
-    -- DefaultSize = UDim2.fromOffset(900, 600),
+    DefaultSize = UDim2.fromOffset(500, 400),
     -- NotifyOnCallbackError = true
 })
 
