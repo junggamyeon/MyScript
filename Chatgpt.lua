@@ -8,7 +8,6 @@
 local Starlight = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/starlight"))()  
 
 local NebulaIcons = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/nebula-icon-library-loader"))()
--- 2) Window
 local Window = Starlight:CreateWindow({
     Name  = "MyScript",
     Subtitle = "Starlight UI Demo",
