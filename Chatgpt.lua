@@ -3,30 +3,7 @@
 -- NOTE: Use in a compliant environment. Replace URLs if the vendor changes them.
 
 -- 0) Optional interface name (MUST be a STRING, not a function)
-pcall(function()
-    if getgenv then
-        -- Starlight expects a string here
-        if type(getgenv().InterfaceName) ~= "string" then
-            getgenv().InterfaceName = "MyScriptInterface"
-        end
-    end
-end)
 
--- 1) Load libs
-local function _httpget(url)
-    local ok, res = pcall(function() return game:HttpGet(url) end)
-    if not ok then error("HttpGet failed: "..tostring(res)) end
-    return res
-end
-
-local function _load_from(url, label)
-    local src = _httpget(url)
-    local chunk, err = loadstring(src)
-    if not chunk then error(("loadstring failed for %s: %s"):format(label or url, tostring(err))) end
-    local ok, lib = pcall(chunk)
-    if not ok then error(("executing loader for %s failed: %s"):format(label or url, tostring(lib))) end
-    return lib
-end
 
 local STARLIGHT_URL   = "https://raw.nebulasoftworks.xyz/starlight"
 local NEBULA_ICON_URL = "https://raw.nebulasoftworks.xyz/nebula-icon-library-loader"
