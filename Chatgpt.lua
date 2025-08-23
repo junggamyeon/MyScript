@@ -5,13 +5,9 @@
 -- 0) Optional interface name (MUST be a STRING, not a function)
 
 
-local STARLIGHT_URL   = "https://raw.nebulasoftworks.xyz/starlight"
-local NEBULA_ICON_URL = "https://raw.nebulasoftworks.xyz/nebula-icon-library-loader"
+local Starlight = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/starlight"))()  
 
-local Starlight   = _load_from(STARLIGHT_URL, "Starlight")
-local NebulaIcons = nil
-pcall(function() NebulaIcons = _load_from(NEBULA_ICON_URL, "Nebula Icon Loader") end)
-
+local NebulaIcons = loadstring(game:HttpGet("https://raw.nebulasoftworks.xyz/nebula-icon-library-loader"))()
 -- 2) Window
 local Window = Starlight:CreateWindow({
     Name  = "MyScript",
