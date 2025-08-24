@@ -9,7 +9,7 @@ local BEHIND_OFFSET    = 2
 local ABOVE_OFFSET     = 4
 
 local ENABLE_REMOTE_ATTACK = true
-local ENABLE_REMOTE_SKILLS = true
+local ENABLE_REMOTE_SKILLS = false
 local SKILL_INTERVAL = 1
 
 local Players      = game:GetService("Players")
