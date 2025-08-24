@@ -1,8 +1,8 @@
 -- ====================== CONFIG ======================
 local DOOR_TWEEN_TIME  = 2
-local DOOR_STAND_ABOVE = 3       -- đứng cách mặt cửa
+local DOOR_STAND_ABOVE = 0.1      -- đứng cách mặt cửa
 local DOOR_HOVER_UP    = 5       -- bay thêm ở cửa cuối
-local DOOR_PAUSE       = 0.35    -- nghỉ giữa các cửa (nhân vật vẫn Anchor, không rơi)
+local DOOR_PAUSE       = 0.1  -- nghỉ giữa các cửa (nhân vật vẫn Anchor, không rơi)
 
 local MOVE_LERP        = 0.6
 local FARM_LOOP_DELAY  = 0.03
