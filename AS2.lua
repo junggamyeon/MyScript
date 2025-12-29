@@ -67,6 +67,22 @@ local function isBackpackFullByAlert()
 	return false
 end
 
+local function getCurrentPollenOnly()
+	local pg = lp:FindFirstChildOfClass("PlayerGui")
+	if not pg then return nil end
+
+	local selfView = pg:FindFirstChild("selfView")
+	local metters = selfView and selfView:FindFirstChild("Metters")
+	local pollenLabel = metters and metters:FindFirstChild("Pollen")
+	if not pollenLabel then return nil end
+
+	local txt = tostring(pollenLabel.Text or "")
+	local left = txt:match("^%s*(.-)%s*/")
+	if not left then return nil end
+
+	left = left:gsub(",", "")
+	return tonumber(left)
+end
 
 local function getPollenText()
 	local pg = lp:FindFirstChildOfClass("PlayerGui")
