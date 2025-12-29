@@ -156,8 +156,8 @@ local Tab = Tabs:CreateTab({
 local Left = Tab:CreateGroupbox({ Name = "Farm", Column = 1, Style = 1 }, "FARM_GB")
 local Right = Tab:CreateGroupbox({ Name = "Status", Column = 2, Style = 1 }, "STATUS_GB")
 
-local DD = Left:CreateDropdown({
-    Name = "Select Field",
+local FieldLabel = Left:CreateLabel({ Name = "Select Field" }, "FIELD_LBL")
+local FieldDD = FieldLabel:AddDropdown({
     Options = fields,
     CurrentOption = { State.Field },
     MultipleOptions = false,
@@ -165,6 +165,7 @@ local DD = Left:CreateDropdown({
         State.Field = (type(sel) == "table" and sel[1]) or sel
     end
 }, "FIELD_DD")
+
 
 local function notify(s)
     pcall(function()
