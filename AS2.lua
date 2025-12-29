@@ -16,8 +16,10 @@ local State = {
     Field = nil,
     AutoFarm = false,
     AutoDig = false,
-    AutoConvert = false
+    AutoConvert = false,
+    Converting = false
 }
+
 
 local function getChar()
     local c = lp.Character or lp.CharacterAdded:Wait()
