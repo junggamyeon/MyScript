@@ -331,31 +331,48 @@ end)
 
 task.spawn(function()
 	while task.wait(0.15) do
-		if State.AutoConvert and not State.Converting then
-			if isPollenFull() then
-				State.Converting = true
-				local _, platform = getMyAnthillPlatform()
-				if platform then
-					local ok = ensureTeleToPlatform(platform)
-					if ok then
-						task.wait(0.5)
-						pcall(function()
-							ReplicatedStorage:WaitForChild("Events"):WaitForChild("Server_Function"):InvokeServer(
-								"ActionCall",
-								"Anthill",
-								platform
-							)
-						end)
-					end
-				end
-				repeat
-					task.wait(0.2)
-				until (not isPollenFull()) or (not State.AutoConvert)
-				State.Converting = false
+		if not State.AutoConvert or State.Converting then
+			continue
+		end
+
+		if not isBackpackFullByAlert() then
+			continue
+		end
+
+		State.Converting = true
+
+		if State.ActiveTween then
+			pcall(function() State.ActiveTween:Cancel() end)
+			State.ActiveTween = nil
+		end
+
+		local _, platform = getMyAnthillPlatform()
+		if platform then
+			ensureTeleToPlatform(platform)
+			task.wait(0.5)
+			pcall(function()
+				ReplicatedStorage.Events.Server_Function:InvokeServer(
+					"ActionCall",
+					"Anthill",
+					platform
+				)
+			end)
+		end
+
+		while true do
+			task.wait(0.3)
+			local cur = getCurrentPollenOnly()
+			if cur and cur <= 0 then
+				break
 			end
 		end
+
+		task.wait(5)
+
+		State.Converting = false
 	end
 end)
+
 
 task.spawn(function()
 	while task.wait(0.05) do
