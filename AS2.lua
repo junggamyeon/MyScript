@@ -342,7 +342,9 @@ task.spawn(function()
 		State.Converting = true
 
 		if State.ActiveTween then
-			pcall(function() State.ActiveTween:Cancel() end)
+			pcall(function()
+				State.ActiveTween:Cancel()
+			end)
 			State.ActiveTween = nil
 		end
 
@@ -350,6 +352,7 @@ task.spawn(function()
 		if platform then
 			ensureTeleToPlatform(platform)
 			task.wait(0.5)
+
 			pcall(function()
 				ReplicatedStorage.Events.Server_Function:InvokeServer(
 					"ActionCall",
@@ -359,20 +362,24 @@ task.spawn(function()
 			end)
 		end
 
+		local start = os.clock()
 		while true do
 			task.wait(0.3)
+
 			local cur = getCurrentPollenOnly()
 			if cur and cur <= 0 then
+				break
+			end
+
+			if os.clock() - start >= 12 then
 				break
 			end
 		end
 
 		task.wait(5)
-
 		State.Converting = false
 	end
 end)
-
 
 task.spawn(function()
 	while task.wait(0.05) do
