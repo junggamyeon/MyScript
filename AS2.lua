@@ -45,6 +45,28 @@ local function normalizeTextNum(s)
 	s = s:gsub(",", ".")
 	return s
 end
+local function isBackpackFullByAlert()
+	local pg = lp:FindFirstChildOfClass("PlayerGui")
+	if not pg then return false end
+
+	local alertsRoot = pg:FindFirstChild("Alerts")
+	alertsRoot = alertsRoot and alertsRoot:FindFirstChild("Alerts")
+	if not alertsRoot then return false end
+
+	for _, f in ipairs(alertsRoot:GetChildren()) do
+		if f:IsA("Frame") then
+			for _, d in ipairs(f:GetDescendants()) do
+				if d:IsA("TextLabel") then
+					if tostring(d.Text) == "Your backpack is Full!" then
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
 
 local function getPollenText()
 	local pg = lp:FindFirstChildOfClass("PlayerGui")
