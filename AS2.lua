@@ -127,6 +127,9 @@ local function fieldList()
     table.sort(t)
     return t
 end
+local fields = fieldList()
+State.Field = fields[1]
+
 local Window = Starlight:CreateWindow({
     Name = "FarmingHub",
     Subtitle = lp.Name,
@@ -195,4 +198,3 @@ btnConvert = Left:CreateButton({
         notify("Auto Convert: " .. (State.AutoConvert and "ON" or "OFF"))
     end
 }, "BTN_AUTOCONVERT")
-end)
