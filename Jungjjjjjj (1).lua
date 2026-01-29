@@ -588,13 +588,44 @@ local function writeStatus(text)
         writefile(Player.Name .. ".txt", text)
     end)
 end
+local function hopToJob()
+    local Players = game:GetService("Players")
+    local TeleportService = game:GetService("TeleportService")
+    local LP = Players.LocalPlayer
 
+    local cfg = getgenv().Config and getgenv().Config["Auto Hop"]
+    if not cfg or not cfg["Enable"] then return end
+
+    local stickers = getAllStickersNew()
+    if not stickers then return end
+
+    for name in pairs(stickers) do
+        local n = tostring(name):lower()
+        if n:find("star sign") or n:find("star cub") then
+            local jobId = cfg["Job Id"]
+            if not jobId or jobId == "" then return end
+
+            task.spawn(function()
+                while true do
+                    pcall(function()
+                        TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LP)
+                    end)
+                    task.wait(3)
+                end
+            end)
+            break
+        end
+    end
+end
 local function checkStarSign()
     if STATE.WROTE_STATUS then return end
 
     local stickers = getAllStickersNew()
     local hasEverFound = false
     local foundThisTick = false
+
+    local hopCfg = getgenv().Config and getgenv().Config["Auto Hop"]
+    local autoHop = hopCfg and hopCfg["Enable"]
 
     for name, amount in pairs(stickers) do
         local lname = name:lower()
@@ -617,6 +648,10 @@ local function checkStarSign()
                     { name = "Amount", value = tostring(amount), inline = false }
                 }, 65280)
 
+                if autoHop then
+                    hopToJob()
+                end
+
                 STATE.LAST_SIGNS[key] = amount
             end
         end
@@ -636,8 +671,10 @@ local function checkStarSign()
     end
 
     if hasEverFound and beeCount >= 20 and playTime >= 28900 then
-        writeStatus("Completed-CoStar")
-        STATE.WROTE_STATUS = true
+        if not autoHop then
+            writeStatus("Completed-CoStarSign")
+            STATE.WROTE_STATUS = true
+        end
         return
     end
 
@@ -649,7 +686,7 @@ local function checkStarSign()
             if STATE.NO_STAR_TIMER == 0 then
                 STATE.NO_STAR_TIMER = tick()
             elseif tick() - STATE.NO_STAR_TIMER >= 20 then
-                writeStatus("Completed-KoStar")
+                writeStatus("Completed-KoStarSign")
                 STATE.WROTE_STATUS = true
                 return
             end
