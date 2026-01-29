@@ -1,3 +1,9 @@
+local ALLOWED_PLACEID = 1537690962
+
+if game.PlaceId ~= ALLOWED_PLACEID then
+    warn("Wrong PlaceId, script stopped:", game.PlaceId)
+    return
+end
 print("anh jung dz v16")
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 local Config = getgenv().Config
