@@ -333,6 +333,15 @@ local function getGlobalReserve(completed)
 
     return treat, fruits
 end
+local function countReached(bees, targetLevel)
+    local n = 0
+    for _, b in ipairs(bees) do
+        if b.level >= targetLevel then
+            n += 1
+        end
+    end
+    return n
+end
 local function autoFeed()
     if FEED_DONE or not FeedConfig["Enable"] then return end
 
@@ -358,10 +367,19 @@ local function autoFeed()
 
     local maxCount = FeedConfig["Bee Amount"] or 7
     local targetLevel = FeedConfig["Bee Level"] or 7
-
+    if countReached(bees, targetLevel) >= maxCount then
+        print("[AutoFeed] DONE: Reached", maxCount, "bees at level", targetLevel)
+        FEED_DONE = true
+        return
+    end
     local group = {}
-    for i = 1, math.min(maxCount, #bees) do
-        group[#group + 1] = bees[i]
+    for _, b in ipairs(bees) do
+        if b.level < targetLevel then
+            group[#group + 1] = b
+            if #group >= maxCount then
+                break
+            end
+        end
     end
 
     for _, b in ipairs(group) do
@@ -396,7 +414,7 @@ local function autoFeed()
                             print(
                                 "[AutoFeed] Bee[" .. b.col .. "," .. b.row .. "]" ..
                                 " | Lv " .. b.level ..
-                                " | ItemKey = " .. tostring(keyName) ..
+                                " | Target " .. targetLevel ..
                                 " | Use = " .. use ..
                                 " | Bond +" .. bondGain ..
                                 " | Remaining " .. (remaining - bondGain)
@@ -413,33 +431,6 @@ local function autoFeed()
                             remaining -= bondGain
                             task.wait(2)
                         end
-                    end
-                end
-            end
-
-            if remaining > 0 and FeedConfig["Auto Buy Treat"] then
-                local inv = getInventory()
-                local haveTreat = inv["Treat"] or 0
-                local freeTreat = haveTreat - reserveTreat
-
-                local needTreat = math.max(0, math.ceil(remaining / 10) - freeTreat)
-
-                if needTreat > 0 then
-                    local honey = Player.CoreStats.Honey.Value
-                    local cost = needTreat * 10000
-
-                    if honey >= cost then
-                        print(
-                            "[AutoFeed] BUY Treat | Need " .. needTreat ..
-                            " | Cost " .. cost ..
-                            " | Honey " .. honey
-                        )
-
-                        Events.ItemPackageEvent:InvokeServer("Purchase", {
-                            Type = "Treat",
-                            Amount = needTreat,
-                            Category = "Eggs"
-                        })
                     end
                 end
             end
