@@ -88,6 +88,7 @@ local function sendWebhook(title, fields, color)
 end
 
 local function deepFind(tbl, key, seen)
+    if type(tbl) ~= "table" then return end -- FIX
     seen = seen or {}
     if seen[tbl] then return end
     seen[tbl] = true
