@@ -763,11 +763,9 @@ local function autoDeleteStickers()
 
     for _, d in ipairs(book) do
         local id = d.TypeID or d[3]
-        local name = ""
+        local name = STICKER_ID_MAP[tonumber(id)] or ""
 
-        if getStickerNameById then
-            name = getStickerNameById(id) or ""
-        end
+        print("[AUTO DELETE] Checking:", name)
 
         if not shouldKeepSticker(name) then
             ev:FireServer({
@@ -777,6 +775,8 @@ local function autoDeleteStickers()
                 [4] = d[4]
             }, false)
             task.wait(0.3)
+        else
+            print("[AUTO DELETE] KEEP:", name)
         end
     end
 end
