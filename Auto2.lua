@@ -588,34 +588,40 @@ local function writeStatus(text)
         writefile(Player.Name .. ".txt", text)
     end)
 end
+local TeleportService = game:GetService("TeleportService")
+
+local LAST_HOP = 0
+local HOP_COOLDOWN = 20
+local HOP_TOGGLE = false
 local function hopToJob()
-    local Players = game:GetService("Players")
-    local TeleportService = game:GetService("TeleportService")
-    local LP = Players.LocalPlayer
-
     local cfg = getgenv().Config and getgenv().Config["Auto Hop"]
-    if not cfg or not cfg["Enable"] then return end
+    if not cfg or not cfg.Enable then return end
 
-    local stickers = getAllStickersNew()
-    if not stickers then return end
-
-    for name in pairs(stickers) do
-        local n = tostring(name):lower()
-        if n:find("star sign") or n:find("star cub") then
-            local jobId = cfg["Job Id"]
-            if not jobId or jobId == "" then return end
-
-            task.spawn(function()
-                while true do
-                    pcall(function()
-                        TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LP)
-                    end)
-                    task.wait(3)
-                end
-            end)
-            break
-        end
+    local jobId = cfg["Job Id"]
+    if not jobId or jobId == "" then
+        warn("[AUTO HOP] No JobId set")
+        return
     end
+
+    if tick() - LAST_HOP < HOP_COOLDOWN then
+        print("[AUTO HOP] Cooldown...")
+        return
+    end
+
+    LAST_HOP = tick()
+    HOP_TOGGLE = not HOP_TOGGLE
+
+    local targetPlace = HOP_TOGGLE and 15579077077 or 1537690962
+
+    print("[AUTO HOP] Teleporting to Place:", targetPlace, "Job:", jobId)
+
+    pcall(function()
+        TeleportService:TeleportToPlaceInstance(
+            targetPlace,
+            tostring(jobId),
+            Player
+        )
+    end)
 end
 local function checkStarSign()
     if STATE.WROTE_STATUS then return end
