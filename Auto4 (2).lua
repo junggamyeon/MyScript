@@ -364,7 +364,6 @@ local function autoFeed()
     end
 
     local isFinalQuest = (currentQuest == "Seven To Seven")
-
     local reserveTreat, reserveFruits = getGlobalReserve(completed)
 
     local bees = getBees()
@@ -374,76 +373,127 @@ local function autoFeed()
 
     local maxCount = FeedConfig["Bee Amount"] or 7
     local targetLevel = FeedConfig["Bee Level"] or 7
-    if countReached(bees, targetLevel) >= maxCount then
-        print("[AutoFeed] DONE: Reached", maxCount, "bees at level", targetLevel)
-        FEED_DONE = true
-        return
-    end
-    local group = {}
-    for _, b in ipairs(bees) do
-        if b.level < targetLevel then
-            group[#group + 1] = b
-            if #group >= maxCount then
-                break
+
+    -- LOCK TARGETS 1 LẦN
+    if not FEED_TARGETS then
+        FEED_TARGETS = {}
+        for _, b in ipairs(bees) do
+            if b.level < targetLevel then
+                FEED_TARGETS[#FEED_TARGETS + 1] = b
+                if #FEED_TARGETS >= maxCount then
+                    break
+                end
             end
         end
+
+        if #FEED_TARGETS == 0 then
+            print("[AutoFeed] Không có ong cần feed")
+            FEED_DONE = true
+            return
+        end
+
+        print("[AutoFeed] Lock", #FEED_TARGETS, "bees để feed tới level", targetLevel)
     end
 
-    for _, b in ipairs(group) do
+    local finished = 0
+
+    for _, b in ipairs(FEED_TARGETS) do
         local bondLeft = getBondLeft(b.col, b.row)
-        if bondLeft and bondLeft > 0 then
-            local remaining = bondLeft
-            local inventory = getInventory()
 
-            for _, item in ipairs(BOND_ITEMS) do
-                if remaining <= 0 then break end
-                if FeedConfig["Bee Food"] and FeedConfig["Bee Food"][item.Name] then
-                    local keep = 0
+        if not bondLeft or bondLeft <= 0 then
+            finished += 1
+            continue
+        end
 
-                    if not isFinalQuest then
-                        if item.Name == "Treat" then
-                            keep = reserveTreat
-                        end
-                        if reserveFruits[item.Name] then
-                            keep = reserveFruits[item.Name]
-                        end
+        local remaining = bondLeft
+        local inventory = getInventory()
+        local fedSomething = false
+
+        for _, item in ipairs(BOND_ITEMS) do
+            if remaining <= 0 then break end
+            if FeedConfig["Bee Food"] and FeedConfig["Bee Food"][item.Name] then
+                local keep = 0
+
+                if not isFinalQuest then
+                    if item.Name == "Treat" then
+                        keep = reserveTreat
                     end
+                    if reserveFruits[item.Name] then
+                        keep = reserveFruits[item.Name]
+                    end
+                end
 
-                    local have = (inventory[item.Name] or 0) - keep
-                    if have > 0 then
-                        local need = math.ceil(remaining / item.Value)
-                        local use = math.min(have, need)
+                local have = (inventory[item.Name] or 0) - keep
+                if have > 0 then
+                    local need = math.ceil(remaining / item.Value)
+                    local use = math.min(have, need)
 
-                        if use > 0 then
-                            local keyName = ITEM_KEYS[item.Name]
-                            local bondGain = use * item.Value
+                    if use > 0 then
+                        local keyName = ITEM_KEYS[item.Name]
+                        local bondGain = use * item.Value
 
-                            print(
-                                "[AutoFeed] Bee[" .. b.col .. "," .. b.row .. "]" ..
-                                " | Lv " .. b.level ..
-                                " | Target " .. targetLevel ..
-                                " | Use = " .. use ..
-                                " | Bond +" .. bondGain ..
-                                " | Remaining " .. (remaining - bondGain)
-                            )
+                        print(
+                            "[AutoFeed] Bee[" .. b.col .. "," .. b.row .. "]" ..
+                            " | Lv " .. b.level ..
+                            " -> " .. targetLevel ..
+                            " | Item " .. item.Name ..
+                            " | Use " .. use ..
+                            " | Bond +" .. bondGain
+                        )
 
-                            Events.ConstructHiveCellFromEgg:InvokeServer(
-                                b.col,
-                                b.row,
-                                keyName,
-                                use,
-                                false
-                            )
+                        Events.ConstructHiveCellFromEgg:InvokeServer(
+                            b.col,
+                            b.row,
+                            keyName,
+                            use,
+                            false
+                        )
 
-                            remaining -= bondGain
-                            task.wait(2)
-                        end
+                        remaining -= bondGain
+                        fedSomething = true
+                        task.wait(2)
+                        return -- mỗi tick feed 1 lần
                     end
                 end
             end
-
-            return
         end
+
+        -- ===== KHÔNG FEED ĐƯỢC ITEM → MUA TREAT =====
+        if not fedSomething and FeedConfig["Auto Buy Treat"] then
+            local haveTreat = inventory["Treat"] or 0
+            local freeTreat = haveTreat - reserveTreat
+            local needTreat = math.max(0, math.ceil(remaining / 10) - freeTreat)
+
+            if needTreat > 0 then
+                local honey = Player.CoreStats.Honey.Value
+                local cost = needTreat * 10000
+
+                if honey >= cost then
+                    print(
+                        "[AutoFeed] BUY Treat | Need " .. needTreat ..
+                        " | Cost " .. cost ..
+                        " | Honey " .. honey
+                    )
+
+                    Events.ItemPackageEvent:InvokeServer("Purchase", {
+                        Type = "Treat",
+                        Amount = needTreat,
+                        Category = "Eggs"
+                    })
+
+                    task.wait(1.5)
+                    return
+                else
+                    print("[AutoFeed] Not enough honey to buy Treat")
+                end
+            end
+        end
+    end
+
+    -- DONE ALL TARGETS
+    if finished >= #FEED_TARGETS then
+        print("[AutoFeed] DONE: Đã feed đủ", #FEED_TARGETS, "ong tới level", targetLevel)
+        FEED_DONE = true
     end
 end
 local function autoHatch()
@@ -633,37 +683,38 @@ local function checkStarSign()
 
     for name, amount in pairs(stickers) do
         local lname = name:lower()
-
         if lname:find("star sign") or lname:find("star cub") then
             hasEverFound = true
-
             local key = lname
             local last = STATE.LAST_SIGNS[key] or 0
-
             if amount > last then
                 foundThisTick = true
-
                 local label = lname:find("star cub") and "Star Cub" or "Star Sign"
-
                 sendWebhook(label .. " collected!!!", {
                     { name = "Player", value = Player.Name, inline = false },
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
                 }, 65280)
-
                 if autoHop then
                     hopToJob()
                 end
-
                 STATE.LAST_SIGNS[key] = amount
             end
         end
     end
 
     local cache = ClientStatCache:Get()
+    if not cache then return end
+
     local beeCount = #getBees()
     local playTime = tonumber(deepFind(cache, "PlayTime")) or 0
+
+    local battleBadge = 0
+    local badges = deepFind(cache, "Badges")
+    if type(badges) == "table" then
+        battleBadge = tonumber(badges.Battle) or 0
+    end
 
     local questDone = false
     local completed = deepFind(cache, "Completed") or {}
@@ -674,7 +725,7 @@ local function checkStarSign()
         end
     end
 
-    if hasEverFound and beeCount >= 20 and playTime >= 28900 then
+    if hasEverFound and beeCount >= 20 and playTime >= 28900 and battleBadge >= 2 then
         if not autoHop then
             writeStatus("Completed-CoStarSign")
             STATE.WROTE_STATUS = true
@@ -685,7 +736,6 @@ local function checkStarSign()
     if questDone and not hasEverFound then
         local inv = getInventory()
         local hasStarEgg = (inv["StarEgg"] or 0) > 0
-
         if not hasStarEgg and not foundThisTick then
             if STATE.NO_STAR_TIMER == 0 then
                 STATE.NO_STAR_TIMER = tick()
