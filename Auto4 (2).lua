@@ -711,9 +711,11 @@ local function checkStarSign()
     local playTime = tonumber(deepFind(cache, "PlayTime")) or 0
 
     local battleBadge = 0
+    local abilityBadge = 0
     local badges = deepFind(cache, "Badges")
     if type(badges) == "table" then
         battleBadge = tonumber(badges.Battle) or 0
+        abilityBadge = tonumber(badges.Ability) or 0
     end
 
     local questDone = false
@@ -725,7 +727,7 @@ local function checkStarSign()
         end
     end
 
-    if hasEverFound and beeCount >= 20 and playTime >= 28900 and battleBadge >= 2 then
+    if hasEverFound and beeCount >= 20 and playTime >= 28900 and battleBadge >= 2 and abilityBadge >= 2 then
         if not autoHop then
             writeStatus("Completed-CoStarSign")
             STATE.WROTE_STATUS = true
