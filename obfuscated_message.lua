@@ -677,18 +677,18 @@ local function checkStarSign()
             hasEverFound = true
             local key = lname
             local last = STATE.LAST_SIGNS[key] or 0
+
             if amount > last then
                 foundThisTick = true
                 local label = lname:find("star cub") and "Star Cub" or "Star Sign"
+
                 sendWebhook(label .. " collected!!!", {
                     { name = "Player", value = Player.Name, inline = false },
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
                 }, 65280)
-                if autoHop then
-                    hopToJob()
-                end
+
                 STATE.LAST_SIGNS[key] = amount
             end
         end
@@ -708,8 +708,8 @@ local function checkStarSign()
         abilityBadge = tonumber(badges.Ability) or 0
     end
 
-    local questDone = false
     local completed = deepFind(cache, "Completed") or {}
+    local questDone = false
     for _, q in pairs(completed) do
         if tostring(q) == "Seven To Seven" then
             questDone = true
@@ -717,8 +717,17 @@ local function checkStarSign()
         end
     end
 
-    if hasEverFound and beeCount >= 20 and playTime >= 28900 and battleBadge >= 2 and abilityBadge >= 2 then
-        if not autoHop then
+    local canComplete =
+        hasEverFound and
+        beeCount >= 20 and
+        playTime >= 28900 and
+        battleBadge >= 2 and
+        abilityBadge >= 2
+
+    if canComplete then
+        if autoHop then
+            hopToJob()
+        else
             writeStatus("Completed-CoStarSign")
             STATE.WROTE_STATUS = true
         end
@@ -727,7 +736,8 @@ local function checkStarSign()
 
     if questDone and not hasEverFound then
         local inv = getInventory()
-        local hasStarEgg = (inv["StarEgg"] or 0) > 0
+        local hasStarEgg = (inv["Star Egg"] or 0) > 0
+
         if not hasStarEgg and not foundThisTick then
             if STATE.NO_STAR_TIMER == 0 then
                 STATE.NO_STAR_TIMER = tick()
