@@ -4,7 +4,7 @@ if game.PlaceId ~= ALLOWED_PLACEID then
     warn("Wrong PlaceId, script stopped:", game.PlaceId)
     return
 end
-print("anh jung dz v17")
+print("anh jung dz v18")
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 local Config = getgenv().Config
 local FeedConfig = Config["Auto Feed"] or {}
@@ -357,7 +357,6 @@ local function autoFeed()
 
     local completed = deepFind(cache, "Completed") or {}
     local currentQuest = getCurrentQuest(completed)
-
     if not currentQuest then
         FEED_DONE = true
         return
@@ -366,134 +365,125 @@ local function autoFeed()
     local isFinalQuest = (currentQuest == "Seven To Seven")
     local reserveTreat, reserveFruits = getGlobalReserve(completed)
 
-    local bees = getBees()
-    table.sort(bees, function(a, b)
-        return a.level < b.level
-    end)
-
     local maxCount = FeedConfig["Bee Amount"] or 7
     local targetLevel = FeedConfig["Bee Level"] or 7
 
-    -- LOCK TARGETS 1 LẦN
+    local bees = getBees()
+    if #bees == 0 then return end
+
+    table.sort(bees, function(a, b)
+        return a.level > b.level
+    end)
+
     if not FEED_TARGETS then
         FEED_TARGETS = {}
-        for _, b in ipairs(bees) do
-            if b.level < targetLevel then
-                FEED_TARGETS[#FEED_TARGETS + 1] = b
-                if #FEED_TARGETS >= maxCount then
-                    break
-                end
-            end
+        for i = 1, math.min(maxCount, #bees) do
+            FEED_TARGETS[#FEED_TARGETS + 1] = bees[i]
         end
-
-        if #FEED_TARGETS == 0 then
-            print("[AutoFeed] Không có ong cần feed")
-            FEED_DONE = true
-            return
-        end
-
-        print("[AutoFeed] Lock", #FEED_TARGETS, "bees để feed tới level", targetLevel)
+        print("[AutoFeed] Locked TOP", #FEED_TARGETS, "ong level cao nhất")
     end
 
-    local finished = 0
-
+    local done = 0
     for _, b in ipairs(FEED_TARGETS) do
-        local bondLeft = getBondLeft(b.col, b.row)
-
-        if not bondLeft or bondLeft <= 0 then
-            finished += 1
-            continue
+        if b.level >= targetLevel then
+            done += 1
         end
+    end
 
-        local remaining = bondLeft
-        local inventory = getInventory()
-        local fedSomething = false
+    if done >= #FEED_TARGETS then
+        print("[AutoFeed] DONE:", #FEED_TARGETS, "ong đã đạt level", targetLevel)
+        FEED_DONE = true
+        return
+    end
 
-        for _, item in ipairs(BOND_ITEMS) do
-            if remaining <= 0 then break end
-            if FeedConfig["Bee Food"] and FeedConfig["Bee Food"][item.Name] then
-                local keep = 0
+    table.sort(FEED_TARGETS, function(a, b)
+        return a.level < b.level
+    end)
 
-                if not isFinalQuest then
-                    if item.Name == "Treat" then
-                        keep = reserveTreat
-                    end
-                    if reserveFruits[item.Name] then
-                        keep = reserveFruits[item.Name]
-                    end
+    local b = FEED_TARGETS[1]
+    if not b then return end
+
+    local bondLeft = getBondLeft(b.col, b.row)
+    if not bondLeft or bondLeft <= 0 then return end
+
+    local remaining = bondLeft
+    local inventory = getInventory()
+    local fed = false
+
+    for _, item in ipairs(BOND_ITEMS) do
+        if remaining <= 0 then break end
+        if FeedConfig["Bee Food"] and FeedConfig["Bee Food"][item.Name] then
+            local keep = 0
+
+            if not isFinalQuest then
+                if item.Name == "Treat" then
+                    keep = reserveTreat
                 end
-
-                local have = (inventory[item.Name] or 0) - keep
-                if have > 0 then
-                    local need = math.ceil(remaining / item.Value)
-                    local use = math.min(have, need)
-
-                    if use > 0 then
-                        local keyName = ITEM_KEYS[item.Name]
-                        local bondGain = use * item.Value
-
-                        print(
-                            "[AutoFeed] Bee[" .. b.col .. "," .. b.row .. "]" ..
-                            " | Lv " .. b.level ..
-                            " -> " .. targetLevel ..
-                            " | Item " .. item.Name ..
-                            " | Use " .. use ..
-                            " | Bond +" .. bondGain
-                        )
-
-                        Events.ConstructHiveCellFromEgg:InvokeServer(
-                            b.col,
-                            b.row,
-                            keyName,
-                            use,
-                            false
-                        )
-
-                        remaining -= bondGain
-                        fedSomething = true
-                        task.wait(2)
-                        return -- mỗi tick feed 1 lần
-                    end
+                if reserveFruits[item.Name] then
+                    keep = reserveFruits[item.Name]
                 end
             end
-        end
 
-        -- ===== KHÔNG FEED ĐƯỢC ITEM → MUA TREAT =====
-        if not fedSomething and FeedConfig["Auto Buy Treat"] then
-            local haveTreat = inventory["Treat"] or 0
-            local freeTreat = haveTreat - reserveTreat
-            local needTreat = math.max(0, math.ceil(remaining / 10) - freeTreat)
+            local have = (inventory[item.Name] or 0) - keep
+            if have > 0 then
+                local need = math.ceil(remaining / item.Value)
+                local use = math.min(have, need)
 
-            if needTreat > 0 then
-                local honey = Player.CoreStats.Honey.Value
-                local cost = needTreat * 10000
+                if use > 0 then
+                    local keyName = ITEM_KEYS[item.Name]
+                    local bondGain = use * item.Value
 
-                if honey >= cost then
                     print(
-                        "[AutoFeed] BUY Treat | Need " .. needTreat ..
-                        " | Cost " .. cost ..
-                        " | Honey " .. honey
+                        "[AutoFeed] Bee[" .. b.col .. "," .. b.row .. "]" ..
+                        " | Lv " .. b.level ..
+                        " -> " .. targetLevel ..
+                        " | Item " .. item.Name ..
+                        " | Use " .. use ..
+                        " | Bond +" .. bondGain
                     )
 
-                    Events.ItemPackageEvent:InvokeServer("Purchase", {
-                        Type = "Treat",
-                        Amount = needTreat,
-                        Category = "Eggs"
-                    })
+                    Events.ConstructHiveCellFromEgg:InvokeServer(
+                        b.col,
+                        b.row,
+                        keyName,
+                        use,
+                        false
+                    )
 
-                    task.wait(1.5)
+                    remaining -= bondGain
+                    fed = true
+                    task.wait(2)
                     return
-                else
-                    print("[AutoFeed] Not enough honey to buy Treat")
                 end
             end
         end
     end
 
-    -- DONE ALL TARGETS
-    if finished >= #FEED_TARGETS then
-        print("[AutoFeed] DONE: Đã feed đủ", #FEED_TARGETS, "ong tới level", targetLevel)
-        FEED_DONE = true
+    if not fed and FeedConfig["Auto Buy Treat"] then
+        local haveTreat = inventory["Treat"] or 0
+        local freeTreat = haveTreat - reserveTreat
+        local needTreat = math.max(0, math.ceil(remaining / 10) - freeTreat)
+
+        if needTreat > 0 then
+            local honey = Player.CoreStats.Honey.Value
+            local cost = needTreat * 10000
+
+            if honey >= cost then
+                print(
+                    "[AutoFeed] BUY Treat | Need " .. needTreat ..
+                    " | Cost " .. cost ..
+                    " | Honey " .. honey
+                )
+
+                Events.ItemPackageEvent:InvokeServer("Purchase", {
+                    Type = "Treat",
+                    Amount = needTreat,
+                    Category = "Eggs"
+                })
+
+                task.wait(1.5)
+            end
+        end
     end
 end
 local function autoHatch()
