@@ -525,10 +525,25 @@ local function autoHatch()
     end
 end
 
+local GROUP_ID = 1537050
+local MIN_DAYS = 7
 local function autoPrinter()
     local cfg = getgenv().Config["Auto Printer"]
     if not cfg or not cfg["Enable"] then return end
     if tick() - PRINTER_CD < 10 then return end
+
+    if not Player or Player.AccountAge < MIN_DAYS then
+        return
+    end
+
+    local inGroup = false
+    pcall(function()
+        inGroup = Player:IsInGroup(GROUP_ID)
+    end)
+
+    if not inGroup then
+        return
+    end
 
     local inv = getInventory()
     if (inv["Star Egg"] or 0) > 0 then
@@ -536,7 +551,9 @@ local function autoPrinter()
         Events.StickerPrinterActivate:FireServer("Star Egg")
 
         sendWebhook("Star Egg roll printer!!!", {
-            { name = "Player", value = Player.Name, inline = false }
+            { name = "Player", value = Player.Name, inline = false },
+            { name = "Account Age", value = Player.AccountAge .. " days", inline = true },
+            { name = "In Group", value = tostring(inGroup), inline = true }
         }, 16777215)
     end
 end
