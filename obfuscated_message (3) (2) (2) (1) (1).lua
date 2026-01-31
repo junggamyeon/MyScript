@@ -715,6 +715,8 @@ local function hopToJob()
         )
     end)
 end
+local IMAGE_URL = "https://cdn.discordapp.com/attachments/1464555469770068215/1467193257988591669/2B14247C-F84D-4C56-953A-60FB1706EDFE.png"
+
 local function checkStarSign()
     if STATE.WROTE_STATUS then return end
 
@@ -739,21 +741,26 @@ local function checkStarSign()
 
             if amount > last then
                 foundThisTick = true
-
                 local label = isCub and "Star Cub" or "Star Sign"
 
-                sendWebhook(label .. " collected!!!", {
+                local fields = {
                     { name = "Player", value = Player.Name, inline = false },
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
-                }, 65280)
+                }
+
+                local embedExtra = {
+                    image = { url = IMAGE_URL }
+                }
+
+                sendWebhook(label .. " collected!!!", fields, 65280, embedExtra)
                 task.wait(1)
                 globalWebhook(label .. " collected!!!", {
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
-                }, 65280)
+                }, 65280, embedExtra)
 
                 STATE.LAST_SIGNS[key] = amount
             end
