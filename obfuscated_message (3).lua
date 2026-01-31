@@ -536,6 +536,12 @@ local function autoPrinter()
         return
     end
 
+    -- CHECK SỐ ONG >= 25
+    local beeCount = #getBees()
+    if beeCount < 25 then
+        return
+    end
+
     local inGroup = false
     pcall(function()
         inGroup = Player:IsInGroup(GROUP_ID)
@@ -552,6 +558,7 @@ local function autoPrinter()
 
         sendWebhook("Star Egg roll printer!!!", {
             { name = "Player", value = Player.Name, inline = false },
+            { name = "Bee Count", value = tostring(beeCount), inline = true },
             { name = "Account Age", value = Player.AccountAge .. " days", inline = true },
             { name = "In Group", value = tostring(inGroup), inline = true }
         }, 16777215)
@@ -744,7 +751,7 @@ local function checkStarSign()
         end
     end
 
-    if hasEverFound and beeCount >= 20 and playTime >= 28900 and battleBadge >= 2 and abilityBadge >= 2 then
+    if hasEverFound and beeCount >= 25 and playTime >= 28900 and battleBadge >= 2 and abilityBadge >= 2 then
         if not autoHop then
             writeStatus("Completed-CoStarSign")
             STATE.WROTE_STATUS = true
