@@ -711,36 +711,45 @@ local function checkStarSign()
             hasEverFound = true
             local key = lname
             local last = STATE.LAST_SIGNS[key] or 0
+
             if amount > last then
                 foundThisTick = true
                 local label = lname:find("star cub") and "Star Cub" or "Star Sign"
+
                 sendWebhook(label .. " collected!!!", {
                     { name = "Player", value = Player.Name, inline = false },
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
                 }, 65280)
-                if autoHop then
-                    hopToJob()
-                end
+
                 STATE.LAST_SIGNS[key] = amount
             end
         end
     end
 
+    local canTrade = false
+    local tradeConfig = Player:FindFirstChild("TradeConfig")
+
+    if tradeConfig then
+        local canTradeValue = tradeConfig:FindFirstChild("CanTrade")
+        if canTradeValue and canTradeValue:IsA("BoolValue") then
+            canTrade = canTradeValue.Value
+        end
+    end
+
+    if hasEverFound and canTrade then
+        if autoHop then
+            hopToJob()
+        else
+            writeStatus("Completed-CoStarSign")
+            STATE.WROTE_STATUS = true
+        end
+        return
+    end
+
     local cache = ClientStatCache:Get()
     if not cache then return end
-
-    local beeCount = #getBees()
-    local playTime = tonumber(deepFind(cache, "PlayTime")) or 0
-
-    local battleBadge = 0
-    local abilityBadge = 0
-    local badges = deepFind(cache, "Badges")
-    if type(badges) == "table" then
-        battleBadge = tonumber(badges.Battle) or 0
-        abilityBadge = tonumber(badges.Ability) or 0
-    end
 
     local questDone = false
     local completed = deepFind(cache, "Completed") or {}
@@ -751,17 +760,10 @@ local function checkStarSign()
         end
     end
 
-    if hasEverFound and beeCount >= 25 and playTime >= 28900 and battleBadge >= 2 and abilityBadge >= 2 then
-        if not autoHop then
-            writeStatus("Completed-CoStarSign")
-            STATE.WROTE_STATUS = true
-        end
-        return
-    end
-
     if questDone and not hasEverFound then
         local inv = getInventory()
-        local hasStarEgg = (inv["StarEgg"] or 0) > 0
+        local hasStarEgg = (inv["Star Egg"] or 0) > 0
+
         if not hasStarEgg and not foundThisTick then
             if STATE.NO_STAR_TIMER == 0 then
                 STATE.NO_STAR_TIMER = tick()
