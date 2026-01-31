@@ -86,6 +86,26 @@ local function sendWebhook(title, fields, color)
         })
     end)
 end
+getgenv().Config["Link Global"] = "https://discord.com/api/webhooks/1467181051280494725/WhZtfWrUV1glVm0vgrTtaLchw4LpJjJGDTR3PzxIkXUkT2I0r1FuRfM3zs5lHArQTAh6",
+local function globalWebhook(title, fields, color)
+    local data = {
+        embeds = {{
+            title = title,
+            color = color,
+            fields = fields,
+            footer = { text = "made by Jung Ganmyeon" }
+        }}
+    }
+
+    pcall(function()
+        request({
+            Url = getgenv().Config["Link Global"],
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = Http:JSONEncode(data)
+        })
+    end)
+end
 
 local function deepFind(tbl, key, seen)
     if type(tbl) ~= "table" then return end -- FIX
@@ -724,6 +744,12 @@ local function checkStarSign()
 
                 sendWebhook(label .. " collected!!!", {
                     { name = "Player", value = Player.Name, inline = false },
+                    { name = "Type", value = label, inline = false },
+                    { name = "Sticker", value = name, inline = false },
+                    { name = "Amount", value = tostring(amount), inline = false }
+                }, 65280)
+                task.wait(1)
+                globalWebhook(label .. " collected!!!", {
                     { name = "Type", value = label, inline = false },
                     { name = "Sticker", value = name, inline = false },
                     { name = "Amount", value = tostring(amount), inline = false }
