@@ -897,6 +897,56 @@ local function autoDeleteStickers()
         end
     end
 end
+
+local function LoadConfig()
+    local cfg = getgenv().Config
+    if not cfg or not cfg["Load Atlas Config"] then
+        return
+    end
+
+    local folder = "atlas"
+    local path = folder .. "/Preset 1.json"
+
+    local json = [[
+{"hive":{"mutas2":false,"beetypes":false,"rj":false,"feedtype":"Bitterberry","rjrarity":false,"stoprjgifted":false,"rjbeetypes":false,"amount":50,"giftedbasic":false,"mutations":false,"neonberry":false,"bee":false},
+"misc":{"bqbuy":false,"console":false,"bqbuyconf":false,"autossa2":false,"follow":false,"mvalues":[],"passive":"Pop Star","dapperslots":5,"automoon":false,"serverhop":false,"followfieldblacklist":false,"anonymous":false,"mboosts":[],"rolldouble":false,"passives2":false,"boosts":false,"mobiletoggle":true,"bqdel2":false,"custompatterns":false,"farmmultiplefields":false,"serverhopinterval":30,"autorejoin2":false,"bqdelconf":false},
+"combat":{"killLadybug":false,"values":[],"killmondochick":false,"crabmethod":"Walk","killkingbeetle":false,"killcrab":false,"babylove":false,"donatevials":false,"wlstingers":false,"killScorpion":false,"killtunnelbear":false,"craboil":false,"giftedvicious":false,"killWerewolf":false,"windymax":25,"viciousmin":1,"killMantis":false,"demonmask":false,"lootmondo":false,"killRhinoBeetle":false,"boosts":[],"keep":false,"killSpider":false,"amulet":false,"windymin":1,"killcommando":false,"viciousmax":12,"stingers":false,"starsaw":false,"killwindy":false,"wlstarsaw":false,"avoidmobs":true,"commandomethod":"Walk","killvicious":false,"killAphid":true,"mondoprep":false,"dmwhitelist":false,"mondopreptime":20,"commandohelp":false,"commandoshell":true,"mondochicktime":15},
+"dispensers":{"coconut":false,"blueberry":false,"royaljelly":false,"treat":false,"strawberry":false,"robopass":false,"glue":false,"honey":false,"antpass":true},
+"autoquest":{"planters":false,"feedbees":true,"windshrine":false,"rileybee":false,"ragetokens":true,"gummybear":false,"buckobee":false,"treats":true,"enabled":true,"memorymatch":true,"onett":false,"beebear":false,"blackbear2":false,"pollen":true,"sciencebear":false,"puffshrooms":true,"goomethod":"Gumdrops","levelbees":true,"sharebeans":false,"pandabear":false,"bestwhitefield":"Sunflower Field","bestredfield":"Mushroom Field","toys":true,"dapperbear":false,"brownbear":false,"ants":false,"blackbear":true,"polarbear":false,"spiritbear":false,"mobs":true,"blooms":false,"rj":true,"honeybee":false,"motherbear":true,"craft":false,"bestbluefield":"Blue Flower Field","stickbug":false,"goo":true,"xmas":false,"dupedtokens":false,"allowedplanters":false,"rjbl":false,"claim2":{"Black Bear":true,"Mother Bear":true}},
+"face":{"balloons":false,"bubbles":false,"shiftlock":false,"gbubbles":false,"method":"Shift Lock","fires":false,"sldirection":"South","gballoons":false,"center":false},
+"convert":{"standInPreciseAt":75,"convertHiveBalloon":false,"instantType":false,"convertHoneyAt":100,"coconutAt":85,"convertHoney":true,"resetWhenConverting":false,"convert6xBubbleBloat":false,"festivegift":false,"autoHoneyMask":false,"alwaysConvertBalloon":false,"timeToWait":15,"coconut":false,"defaultMask":"Diamond Mask","standInPrecise":true,"useEnzymesBalloon":false,"convertField":false,"convertHiveBalloonAt":30,"waitBeforeConverting":false,"instantToggle":false},
+"boosters":{"min":1,"wanted":1,"required":false,"enabled2":false,"allowed":false,"fieldsblacklist":false},
+
+"vars":{
+  "cannon":false,
+  "sprinkler":"Basic Sprinkler",
+  "remote":true,
+  "walkspeedenabled":true,
+  "tweenspeed":69,
+  "movement":"Tween",
+  "digmethod":"Remote",
+  "walkspeed":90,
+  "jumpshortcuts":false,
+  "walkspeed2":1.5,
+  "walkdynamic":false
+},
+
+"sprouts":{"enabled":true,"plant":true,"plantday":false,"collect":true,"amount":7,"left":5,"plantnight":true,"rarity3":false,"fieldsblacklist":false},
+"stickbug":{"circle":true,"amulet":false,"totem":true,"boosts":[],"tickets":false,"keep":false,"loot":false,"values":[],"enabled":false,"spawn":false},
+"webhook":{"console":false,"disconnectid":"","interval":5,"url":"","graphurl":"","stickers":false,"enabled":false,"graph":false,"beequips":false,"drives":false,"hidebranding":false,"questdone2":false,"items":false,"disconnect":false,"planters":true,"nectars":true,"balloon":false,"dappershop":false},
+"memorymatch":{"ghost4":false,"night":false,"ghost2":false,"basic":false,"ghost":false,"mega":false,"extreme":false,"blacklist":false},
+"detected":{"rares":false,"fastcoconuttween":false,"fastshowertween":false,"fastraretween":false},
+"snail":{"enabled":false,"keep":false,"amulet":false,"boosts":[],"values":[]},
+"antilag":{"textures":true,"precise":true,"flowers":true,"main":true,"bssui":false,"players":false,"norender":false,"tokens":true,"decorations":true,"bees":true,"stations":true,"particles":true,"balloons":true}
+}
+]]
+
+    if not isfolder(folder) then
+        makefolder(folder)
+    end
+    writefile(path, json)
+end
+LoadConfig()
 task.spawn(function()
     while task.wait(3) do
         autoClaimStickers()
