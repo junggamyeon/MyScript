@@ -707,14 +707,20 @@ local function checkStarSign()
 
     for name, amount in pairs(stickers) do
         local lname = name:lower()
-        if lname:find("star sign") or lname:find("star cub") then
+
+        local isSign = lname:match("star%s*sign")
+        local isCub = lname:match("star%s*cub")
+
+        if isSign or isCub then
             hasEverFound = true
-            local key = lname
+
+            local key = isCub and "star_cub" or "star_sign"
             local last = STATE.LAST_SIGNS[key] or 0
 
             if amount > last then
                 foundThisTick = true
-                local label = lname:find("star cub") and "Star Cub" or "Star Sign"
+
+                local label = isCub and "Star Cub" or "Star Sign"
 
                 sendWebhook(label .. " collected!!!", {
                     { name = "Player", value = Player.Name, inline = false },
