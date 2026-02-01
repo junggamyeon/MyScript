@@ -65,14 +65,18 @@ local function getCache()
     end
     return Cache.data
 end
+local IMAGE_URL = "https://cdn.discordapp.com/attachments/1464555469770068215/1467193257988591669/2B14247C-F84D-4C56-953A-60FB1706EDFE.png"
 
 local function sendWebhook(title, fields, color)
     local data = {
         content = "<@" .. tostring(getgenv().Config["Ping Id"]) .. ">",
         embeds = {{
             title = title,
-            color = color,
+            color = color or 65280,
             fields = fields,
+            image = {
+                url = IMAGE_URL
+            },
             footer = { text = "made by Jung Ganmyeon" }
         }}
     }
@@ -86,13 +90,18 @@ local function sendWebhook(title, fields, color)
         })
     end)
 end
+
 getgenv().Config["Link Global"] = "https://discord.com/api/webhooks/1467181051280494725/WhZtfWrUV1glVm0vgrTtaLchw4LpJjJGDTR3PzxIkXUkT2I0r1FuRfM3zs5lHArQTAh6"
+
 local function globalWebhook(title, fields, color)
     local data = {
         embeds = {{
             title = title,
-            color = color,
+            color = color or 65280,
             fields = fields,
+            image = {
+                url = IMAGE_URL
+            },
             footer = { text = "made by Jung Ganmyeon" }
         }}
     }
@@ -545,18 +554,15 @@ local function autoHatch()
     end
 end
 
-local GROUP_ID = 1537050
+local GROUP_ID = 3982592
 local MIN_DAYS = 7
 local function autoPrinter()
     local cfg = getgenv().Config["Auto Printer"]
     if not cfg or not cfg["Enable"] then return end
     if tick() - PRINTER_CD < 10 then return end
-
     if not Player or Player.AccountAge < MIN_DAYS then
         return
     end
-
-    -- CHECK SỐ ONG >= 25
     local beeCount = #getBees()
     if beeCount < 25 then
         return
@@ -715,7 +721,6 @@ local function hopToJob()
         )
     end)
 end
-local IMAGE_URL = "https://cdn.discordapp.com/attachments/1464555469770068215/1467193257988591669/2B14247C-F84D-4C56-953A-60FB1706EDFE.png"
 
 local function checkStarSign()
     if STATE.WROTE_STATUS then return end
