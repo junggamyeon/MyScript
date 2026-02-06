@@ -1126,17 +1126,21 @@ function AutoLoadConfig()
         local HOP_CD = 25
         local lastHop = 0
         local needHop = false
+        local LOOP = 0
 
-        local function normalize(str)
-            return (str or ""):gsub("\r\n", "\n"):gsub("\r", "\n"):gsub("%s+$", "")
+        local function log(...)
+            print("[AutoLoadConfig]", ...)
         end
 
-        local function tryHop()
+        local function tryHop(reason)
+            log("tryHop | needHop =", needHop, "| reason =", reason)
             if not needHop then return end
-            if tick() - lastHop < HOP_CD then return end
+            if tick() - lastHop < HOP_CD then
+                log("hop blocked by cooldown")
+                return
+            end
             lastHop = tick()
-
-            warn("[AutoLoadConfig] Hopping...")
+            log("HOP NOW")
             pcall(function()
                 TeleportService:TeleportToPlaceInstance(
                     game.PlaceId,
@@ -1146,17 +1150,41 @@ function AutoLoadConfig()
             end)
         end
 
+        local function safeDecode(str)
+            local ok, data = pcall(function()
+                return Http:JSONDecode(str)
+            end)
+            return ok and data or nil
+        end
+
+        local function normalizeJSON(str)
+            local obj = safeDecode(str)
+            if not obj then return nil end
+            return Http:JSONEncode(obj)
+        end
+
         while task.wait(CHECK_DELAY) do
+            LOOP += 1
+            log("===== LOOP", LOOP, "=====")
+
             local cfg = getgenv().Config
-            if not cfg or cfg["Load Config Atlas"] ~= true then
+            if not cfg then
+                log("Config = nil")
                 needHop = false
                 continue
             end
 
-            -- 🔒 TỪ ĐÂY TRỞ XUỐNG MỚI ĐƯỢC PHÉP CHẠY
+            if cfg["Load Config Atlas"] ~= true then
+                log("Load Config Atlas = false")
+                needHop = false
+                continue
+            end
+
+            log("Load Config Atlas = true")
 
             if not isfolder(FOLDER) then
                 makefolder(FOLDER)
+                log("Folder created:", FOLDER)
             end
 
             local hasStarEgg = false
@@ -1173,23 +1201,57 @@ function AutoLoadConfig()
                 canTrade = tc.CanTrade.Value
             end
 
+            log("hasStarEgg =", hasStarEgg, "| canTrade =", canTrade)
+
             local url = (hasStarEgg and not canTrade) and AFTER_URL or BEFORE_URL
+            log("Using URL =", url == AFTER_URL and "AFTER" or "BEFORE")
+
             local ok, remoteText = pcall(function()
                 return game:HttpGet(url)
             end)
-            if not ok then
-                tryHop()
+
+            if not ok or not remoteText then
+                log("HttpGet failed")
+                tryHop("http_failed")
+                continue
+            end
+
+            local remoteNorm = normalizeJSON(remoteText)
+            if not remoteNorm then
+                log("Remote JSON decode failed")
+                tryHop("remote_decode_fail")
                 continue
             end
 
             local localText = isfile(PATH) and readfile(PATH) or nil
-            if not localText or normalize(localText) ~= normalize(remoteText) then
-                writefile(PATH, remoteText)
-                warn("[AutoLoadConfig] Preset changed → need hop")
+            log("Local file exists =", localText ~= nil)
+
+            if not localText then
+                log("No local file → writefile")
+                writefile(PATH, remoteNorm)
                 needHop = true
+                tryHop("no_local_file")
+                continue
             end
 
-            tryHop()
+            local localNorm = normalizeJSON(localText)
+            if not localNorm then
+                log("Local JSON broken → overwrite")
+                writefile(PATH, remoteNorm)
+                needHop = true
+                tryHop("local_decode_fail")
+                continue
+            end
+
+            if localNorm ~= remoteNorm then
+                log("JSON logical mismatch → overwrite")
+                writefile(PATH, remoteNorm)
+                needHop = true
+                tryHop("content_changed")
+            else
+                log("JSON identical → no hop")
+                needHop = false
+            end
         end
     end)
 end
